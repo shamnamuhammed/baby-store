@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "axios": "^1.18.1",
+    "canvas-confetti": "^1.9.4",
+    "framer-motion": "^12.42.2",
+    "react-hook-form": "^7.81.0",
+    "react-hot-toast": "^2.6.0",
+    "tailwindcss": "^4.3.2",
+    "zod": "^4.4.3"
+  }
+}

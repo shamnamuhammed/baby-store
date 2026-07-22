@@ -1,0 +1,5 @@
+from .create_address import CreateAddressAPIView
+from .list_address import ListAddressesAPIView
+from .address_detail import AddressDetailAPIView
+from .update_address import UpdateAddressAPIView
+from .delete_address import DeleteAddressAPIView
