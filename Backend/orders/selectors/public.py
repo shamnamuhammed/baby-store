@@ -26,6 +26,7 @@ def get_order_by_id(*,order_id, user):
             .get(
                 pk=order_id,
                 user=user,
+                status=Order.OrderStatus.PENDING,
             )
         )
     except Order.DoesNotExist:

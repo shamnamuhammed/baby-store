@@ -1,7 +1,7 @@
 from django.db import models
 from addresses.models import Address
 from users.models import User
-
+from django.conf import settings
 
 class Order(models.Model):
 
@@ -26,6 +26,26 @@ class Order(models.Model):
     )
 
     total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    
+    coupon = models.ForeignKey(
+         "coupons.Coupon",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
+
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    final_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,

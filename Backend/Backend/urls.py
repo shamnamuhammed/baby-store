@@ -71,13 +71,25 @@ urlpatterns = [
         ),
     
     path(
-    "api/payments/",
-    include("payments.urls"),
-),
+        "api/payments/",
+        include("payments.urls"),
+    ),
+  
      
       path(
         "api/admin/products/",
         include("products.urls.admin"),
+    ),
+      
+      
+       path(
+        "api/admin/coupons/",
+        include("coupons.urls.admin"),
+    ),
+
+      path(
+        "api/coupons/",
+        include("coupons.urls.public"),
     ),
     
     
