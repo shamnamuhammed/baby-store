@@ -25,6 +25,9 @@ class CreateOrderAPIView(APIView):
     def post(self, request):
         serializer = CreateOrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        print(request.user)
+        print(request.user.id)
+        print(request.data)
 
         try:
             order = create_order(

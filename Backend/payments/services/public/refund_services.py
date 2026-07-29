@@ -1,10 +1,9 @@
-from django.utils import timezone
+# from django.utils import timezone
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
-
 from payments.models import Payment
 from orders.models import Order
-
+from products.services.stock import StockService
 
 
 class RefundService:
@@ -32,6 +31,13 @@ class RefundService:
             raise ValidationError(
                 {
                     "message": "Order already cancelled."
+                }
+            )
+            
+        if order.status != Order.OrderStatus.CONFIRMED:
+            raise ValidationError(
+                {
+                    "message": "Only confirmed orders can be refunded."
                 }
             )
             
@@ -65,37 +71,41 @@ class RefundService:
     def complete_refund(*, payment, reason=None):
 
         if payment.status == Payment.PaymentStatus.REFUNDED:
-            return payment
+            raise ValidationError(
+                {
+                    "message": "Payment already refunded."
+                }
+            )
+            
+        if payment.status not in [
+            Payment.PaymentStatus.SUCCESS,
+            Payment.PaymentStatus.REFUND_REQUESTED,
+        ]:
+            raise ValidationError(
+                {
+                    "message": "Invalid payment status."
+                }
+            )
 
         if reason:
             payment.refund_reason = reason
 
         payment.status = Payment.PaymentStatus.REFUNDED
-        payment.refund_amount = payment.amount
+        payment.refunded_amount = payment.amount
         payment.refunded_at = timezone.now()
 
         payment.save(
             update_fields=[
                 "status",
                 "refund_reason",
-                "refund_amount",
+                "refunded_amount",
                 "refunded_at",
             ]
         )
 
         order = payment.order
 
-        for item in order.items.select_related("product"):
-
-            product = item.product
-
-            product.stock_quantity += item.quantity
-
-            product.save(
-                update_fields=[
-                    "stock_quantity",
-                ]
-            )
+        StockService.restore_stock(order)
 
         order.status = Order.OrderStatus.CANCELLED
 

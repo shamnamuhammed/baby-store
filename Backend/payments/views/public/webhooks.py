@@ -4,8 +4,8 @@ from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from Backend.payments.selectors.public.payment import get_payment_by_session_id
-from payments.webhook_services import StripeWebhookService
+from payments.selectors.public.payment import get_payment_by_session_id
+from payments.views.public.webhook_services import StripeWebhookService
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
@@ -51,9 +51,11 @@ class StripeWebhookAPIView(APIView):
                     payment_intent=session["payment_intent"],
                 )
             except Exception as e:
-               print("Webhook Error:", e)
+                import traceback
+                traceback.print_exc()
+                raise
 
-            return Response(
+        return Response(
                 {"message": "Webhook received."},
             status=status.HTTP_200_OK,
         )

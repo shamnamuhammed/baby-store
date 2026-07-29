@@ -56,3 +56,31 @@ class AdminOrderStatusSerializer(serializers.ModelSerializer):
         fields = (
             "status",
         )
+        
+    def validate_status(self, value):
+
+            current_status = self.instance.status
+
+            allowed_transitions = {
+                Order.OrderStatus.PENDING: [
+                    Order.OrderStatus.CONFIRMED,
+                    Order.OrderStatus.CANCELLED,
+                ],
+                Order.OrderStatus.CONFIRMED: [
+                    Order.OrderStatus.SHIPPED,
+                    Order.OrderStatus.CANCELLED,
+                ],
+                Order.OrderStatus.SHIPPED: [
+                    Order.OrderStatus.DELIVERED,
+                ],
+                Order.OrderStatus.DELIVERED: [],
+                Order.OrderStatus.CANCELLED: [],
+            }
+
+            if value not in allowed_transitions[current_status]:
+                raise serializers.ValidationError(
+                    f"Cannot change order status from "
+                    f"{current_status} to {value}."
+                )
+
+            return value

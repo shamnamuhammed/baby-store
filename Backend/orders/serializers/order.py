@@ -17,6 +17,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "id",
             "status",
             "total_amount",
+            "final_amount",
+            "items",
             "created_at",
             "items",
         )

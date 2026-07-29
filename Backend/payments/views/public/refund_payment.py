@@ -7,10 +7,10 @@ from payments.serializers.payment import PaymentSerializer
 from payments.serializers.refund_payment import (
     RefundPaymentSerializer,
 )
-from payments.selectors import (
+from payments.selectors.public.payment import (
     get_payment_for_refund,
 )
-from services.public.refund_services import (
+from payments.services.public.refund_services import (
     RefundService,
 )
 class RefundPaymentAPIView(APIView):

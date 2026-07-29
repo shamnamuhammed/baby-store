@@ -31,7 +31,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "refund_reason",
-            "refund_amount",
+            "rejection_reason",
+            "refunded_amount",
             "refunded_at",
         )
 
@@ -41,4 +42,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             "transaction_id",
             "created_at",
             "updated_at",
+            "refunded_amount",
+            "refunded_at",
         )

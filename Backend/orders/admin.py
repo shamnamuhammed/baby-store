@@ -35,7 +35,9 @@ class OrderItemAdmin(admin.ModelAdmin):
         "order",
         "product",
         "quantity",
-        "price",
+        "unit_price",
+        "discount",
+        "final_price",
         "subtotal",
     )
 

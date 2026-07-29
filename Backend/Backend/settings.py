@@ -14,7 +14,7 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 from core.cors import *
-
+from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,7 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
-DEBUG = config("DEBUG",cast=bool)
+# DEBUG = config("DEBUG",cast=bool)
+DEBUG = True
 
 # stripe configure
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
@@ -65,6 +66,9 @@ INSTALLED_APPS = [
     'core',
     "django_filters",
     "corsheaders",
+    "coupons",
+    "offers",
+    "django_celery_beat",
 
 
 ]
@@ -216,4 +220,37 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "REST API for Baby Store E-commerce Backend",
     "VERSION": "1.0.0",
      "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist/",
+}
+
+# Add Celery settings
+CELERY_BROKER_URL = "redis://redis:6379/0"
+
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+
+CELERY_ACCEPT_CONTENT = [
+    "json",
+]
+
+CELERY_TASK_SERIALIZER = "json"
+
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TIMEZONE = TIME_ZONE
+
+# Register your scheduled task
+CELERY_BEAT_SCHEDULE = {
+
+    "update-offer-status-every-minute": {
+
+        "task": "offers.tasks.update_offer_status",
+
+        "schedule": crontab(),
+
+    },
+    
+    "update-coupon-status-every-minute": {
+        "task": "coupons.tasks.update_coupon_status",
+        "schedule": crontab(),
+    },
+
 }

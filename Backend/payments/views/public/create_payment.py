@@ -5,9 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from core.response import success_response
 from payments.models import Payment
-from Backend.payments.selectors.public.payment import get_order_for_payment
+from payments.selectors.public.payment import get_order_for_payment
 from payments.serializers import PaymentSerializer,CreatePaymentSerializer
-from Backend.payments.services.public import PaymentService
+from payments.services.public import PaymentService
 
 
 @extend_schema(

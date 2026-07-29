@@ -10,7 +10,7 @@ from coupons.serializers.public import ApplyCouponSerializer
 from coupons.selectors.public.coupon import get_coupon_by_code
 from coupons.services.public.coupon import apply_coupon
 
-from orders.selectors.public import get_order_by_id
+from orders.selectors.public import get_pending_order_by_id
 from coupons.services.public import remove_coupon
 
 class ApplyCouponAPIView(APIView):
@@ -32,7 +32,7 @@ class ApplyCouponAPIView(APIView):
             raise_exception=True,
         )
 
-        order = get_order_by_id(
+        order = get_pending_order_by_id(
             order_id=request.data["order_id"],
             user=request.user,
         )
@@ -66,7 +66,7 @@ class RemoveCouponAPIView(APIView):
     )
     def delete(self, request, order_id):
 
-        order = get_order_by_id(
+        order = get_pending_order_by_id(
             order_id=order_id,
             user=request.user,
         )

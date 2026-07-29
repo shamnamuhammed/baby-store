@@ -7,7 +7,7 @@ from core.permission import IsAdmin
 from core.pagination import CustomPagination
 from core.response import success_response
 
-from payments.selectors.admin import (
+from payments.selectors.admin.refund import (
     get_admin_refunds,
     get_admin_refund_by_id,
 )
@@ -16,7 +16,7 @@ from payments.serializers.admin.refund import (
     AdminRefundSerializer,
 )
 
-from payments.services.admin import (
+from payments.services.admin.refund import (
     approve_refund,
     reject_refund,
 )

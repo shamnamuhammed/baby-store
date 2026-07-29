@@ -1,10 +1,14 @@
 from rest_framework import serializers
-from orders.models import OrderItem 
-from .product import OrderProductSerializer
+
+from orders.models import OrderItem
+from products.serializers.public import ProductSummarySerializer
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
 
-    product = OrderProductSerializer(read_only=True)
+    product = ProductSummarySerializer(
+        read_only=True,
+    )
 
     class Meta:
         model = OrderItem
@@ -12,6 +16,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
             "id",
             "product",
             "quantity",
-            "price",
+            "unit_price",
+            "discount",
+            "final_price",
             "subtotal",
         )

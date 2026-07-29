@@ -27,7 +27,7 @@ class AdminRefundSerializer(serializers.ModelSerializer):
             "payment_method",
             "status",
             "refund_reason",
-            "refund_amount",
+            "refunded_amount",
             "transaction_id",
             "created_at",
             "refunded_at",

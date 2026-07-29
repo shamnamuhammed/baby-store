@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from rest_framework.exceptions import ValidationError
-from services.public.refund_services import RefundService
+from payments.services.public import RefundService
 from payments.models import Payment
 
 
@@ -33,10 +33,12 @@ def reject_refund(*, payment):
         )
 
     payment.status = Payment.PaymentStatus.SUCCESS
+    payment.rejection_reason = reason
 
     payment.save(
         update_fields=[
             "status",
+            "rejection_reason",
         ]
     )
 
