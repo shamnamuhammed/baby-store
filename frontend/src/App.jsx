@@ -27,6 +27,8 @@ import OrderDetail from './pages/OrderDetail';
 import Profile from './pages/Profile';
 import Addresses from './pages/Addresses';
 import NotFound from './pages/NotFound';
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -54,6 +56,8 @@ function AnimatedRoutes() {
         <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
+        <Route path="/payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+        <Route path="/payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />

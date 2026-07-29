@@ -20,7 +20,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const { wishlistIds, fetchWishlist, toggleWishlist } = useWishlist();
 
   const search = searchParams.get('search') || '';
@@ -45,12 +45,14 @@ export default function Products() {
       else if (sort === 'price_desc') params.set('ordering', '-price');
       console.log(params.toString());
       const res = await api.get(`/api/products/?${params}`);
-      console.log(res.data);
-
-      setProducts(res.data.data);
+     console.log(JSON.stringify(res.data, null, 2));
+      console.log("full response :",res.data);
+      console.log("Results:",res.data.results);
+      console.log("Data:", res.data.data)
+      setProducts(res.data.data.results);
 
       setTotalPages(
-        Math.ceil(res.data.count / 5)
+        (res.data.data.total_pages)
       );
     } catch {
       setProducts([]);

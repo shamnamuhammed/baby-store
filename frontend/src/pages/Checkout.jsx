@@ -18,6 +18,7 @@ export default function Checkout() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [loading, setLoading] = useState(false);
   const [orderCreated, setOrderCreated] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("STRIPE");
 
   // New address form
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -85,17 +86,28 @@ export default function Checkout() {
         '/api/orders/create/', { 
         address_id: selectedAddress });
       const order = orderRes.data.data;
-
+console.log("Selected Payment Method:", paymentMethod);
       // Create Stripe Checkout Session
         const paymentRes= await api.post('/api/payments/create/', 
           { order_id: order.id, 
-            payment_method: 'STRIPE' }
+            payment_method: paymentMethod, }
           );
 
 
-        const checkoutUrl = paymentRes.data.data.checkout_url;
+        // const checkoutUrl = paymentRes.data.data.checkout_url;
 
-        window.location.href =checkoutUrl;
+        // window.location.href =checkoutUrl;
+
+        if (paymentMethod === "STRIPE") {
+
+    window.location.href = paymentRes.data.data.checkout_url;
+
+} else {
+
+    toast.success("Order placed successfully!");
+    navigate("/order-success");
+
+}
       
 
       // navigate('/order-success', { state: { order } });
@@ -302,7 +314,7 @@ export default function Checkout() {
                     </div>
 
                     {/* Stripe info */}
-                    <div className="p-4 rounded-xl border border-violet-500/20 bg-violet-500/5 mb-6">
+                    {/* <div className="p-4 rounded-xl border border-violet-500/20 bg-violet-500/5 mb-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center">
                           <CreditCard className="w-5 h-5 text-violet-400" />
@@ -312,7 +324,45 @@ export default function Checkout() {
                           <p className="text-xs text-zinc-400 mt-0.5">Your payment info is encrypted and secure</p>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
+
+      <div className="space-y-4 mb-6">
+
+          <label className="flex items-center gap-3 p-4 rounded-lg border cursor-pointer">
+            <input
+              type="radio"
+              value="STRIPE"
+              checked={paymentMethod === "STRIPE"}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            />
+            <div>
+              <p className="text-white font-medium">
+                Stripe
+              </p>
+              <p className="text-zinc-400 text-sm">
+                Pay securely using Card
+              </p>
+            </div>
+          </label>
+
+          <label className="flex items-center gap-3 p-4 rounded-lg border cursor-pointer">
+            <input
+              type="radio"
+              value="COD"
+              checked={paymentMethod === "COD"}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            />
+            <div>
+              <p className="text-white font-medium">
+                Cash on Delivery
+              </p>
+              <p className="text-zinc-400 text-sm">
+                Pay when your order arrives
+              </p>
+            </div>
+          </label>
+
+        </div>  
 
                     <div className="flex gap-3">
                       <button onClick={() => setStep(1)} className="btn-ghost flex-1 text-sm">Back</button>
