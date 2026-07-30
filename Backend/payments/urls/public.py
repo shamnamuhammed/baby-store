@@ -1,7 +1,7 @@
 from django.urls import path
 
 from payments.webhooks import StripeWebhookAPIView
-from Backend.payments.views.public import (
+from payments.views.public import (
     CreatePaymentAPIView,
     PaymentListAPIView,
     PaymentDetailAPIView)

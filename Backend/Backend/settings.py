@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'core',
     "django_filters",
     "corsheaders",
+    "notifications",
 
 
 ]
