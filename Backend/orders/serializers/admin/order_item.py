@@ -24,6 +24,6 @@ class AdminOrderItemSerializer(serializers.ModelSerializer):
             "product_name",
             "product_sku",
             "quantity",
-            "price",
+            "unit_price",
             "subtotal",
         )

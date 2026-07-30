@@ -63,7 +63,7 @@ def get_payment_for_refund(
     return get_object(
         Payment.objects.select_related(
             "order",
-        ),
+        ).filter(status=Payment.PaymentStatus.SUCCESS),
         message="Payment not found.",
         pk=payment_id,
         order__user=user,

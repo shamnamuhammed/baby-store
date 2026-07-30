@@ -33,7 +33,7 @@ urlpatterns = [
         include("products.urls.public")), 
         
     path(
-            "api/cart/",
+        "api/cart/",
             include("cart.urls"),
             ),
     path("api/schema/", 
@@ -56,12 +56,12 @@ urlpatterns = [
         include("orders.urls.public"),
         ),
     path(
-        "api/orders/",
+        "api/admin/orders/",
         include("orders.urls.admin"),
         ),
     
     path(
-        "api/admin/users/",
+        "api/users/",
         include("users.urls.admin"),
     ),
         
@@ -71,15 +71,36 @@ urlpatterns = [
         ),
     
     path(
-    "api/payments/",
-    include("payments.urls"),
-),
+        "api/payments/",
+        include("payments.urls.public"),
+    ),
+    path(
+        "api/admin/payments/",
+        include("payments.urls.admin"),
+    ),
+  
      
       path(
         "api/admin/products/",
         include("products.urls.admin"),
     ),
-    
+      
+      
+       path(
+        "api/admin/coupons/",
+        include("coupons.urls.admin"),
+    ),
+
+      path(
+        "api/coupons/",
+        include("coupons.urls.public"),
+    ),
+      
+      path(
+            "api/admin/offers/",
+            include("offers.urls.admin"),
+        ),
+            
     
 ]
 

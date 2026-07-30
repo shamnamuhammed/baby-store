@@ -65,39 +65,68 @@ class AddToCartAPIView(APIView):
             )
             
         #check whether product already exists in cart
-            
+        current_quantity = 0   
         try :
                 cart_item = CartItem.objects.get(
                     cart =cart,
                     product=product,
                 )
                 
-                cart_item.quantity =F("quantity") + quantity
-                cart_item.save()
+                current_quantity = cart_item.quantity
+                
+                # cart_item.quantity =F("quantity") + quantity
+                # cart_item.save()
                 
                 # Refresh objects so quantity become integer again
                 
-                cart_item.refresh_from_db()
+                # cart_item.refresh_from_db()
                 
-                message =" Cart updated successfully ."
+                # message =" Cart updated successfully ."
                 
         except CartItem.DoesNotExist:
+                pass
+        new_quantity = current_quantity + quantity
+                # CartItem.objects.create(
+                #     cart=cart,
+                #     product=product,
+                #     quantity=quantity,
+                # )
                 
+                # message= "Product added to cart successfully ."
+        if new_quantity > product.stock_quantity:
+            
+                return Response(
+                {
+                    "message": (
+                        f"Only {product.stock_quantity} items available."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        if current_quantity > 0:
+                cart_item.quantity = new_quantity
+                cart_item.save()
+
+                message = "Cart updated successfully."
+
+        else:
                 CartItem.objects.create(
                     cart=cart,
                     product=product,
                     quantity=quantity,
                 )
-                
-                message= "Product added to cart successfully ."
+
+                message = "Product added to cart successfully."
+
         return Response(
                 {
-                    "message" : message ,
-                    
+                    "message": message,
                 },
-                status =status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
-        
+
+                
 
 @extend_schema(
     summary="View Cart",
@@ -177,8 +206,16 @@ class UpdateCartItemAPIView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-          
-            
+        if quantity > cart_item.product.stock_quantity:
+            return Response(
+                {
+                    "message": (
+                        f"Only {cart_item.product.stock_quantity} items available."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+                    
             
         cart_item.quantity = quantity
         cart_item.save()
@@ -202,7 +239,19 @@ class UpdateCartItemAPIView(APIView):
             cart__user=request.user
         )
 
-        cart_item.quantity = serializer.validated_data["quantity"]
+        quantity = serializer.validated_data["quantity"]
+
+        if quantity > cart_item.product.stock_quantity:
+            return Response(
+                {
+                    "message": (
+                        f"Only {cart_item.product.stock_quantity} items available."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cart_item.quantity = quantity
         cart_item.save()
 
         return success_response(

@@ -86,6 +86,9 @@ class Payment(models.Model):
         decimal_places=2,
         default=0,
     )
+    rejection_reason = models.TextField(
+        blank=True,
+    )
 
     paid_at = models.DateTimeField(
         blank=True,

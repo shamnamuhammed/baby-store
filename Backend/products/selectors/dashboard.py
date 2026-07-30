@@ -37,27 +37,27 @@ def get_dashboard_statistics():
 
         "pending_orders":
             Order.objects.filter(
-                status="pending"
+                status=Order.OrderStatus.PENDING
             ).count(),
 
         "confirmed_orders":
             Order.objects.filter(
-                status="confirmed"
+                status=Order.OrderStatus.CONFIRMED
             ).count(),
 
         "shipped_orders":
             Order.objects.filter(
-                status="shipped"
+                status=Order.OrderStatus.SHIPPED
             ).count(),
 
         "delivered_orders":
             Order.objects.filter(
-                status="delivered"
+                status=Order.OrderStatus.DELIVERED
             ).count(),
 
         "cancelled_orders":
             Order.objects.filter(
-                status="cancelled"
+                status=Order.OrderStatus.CANCELLED
             ).count(),
 
         "total_revenue":

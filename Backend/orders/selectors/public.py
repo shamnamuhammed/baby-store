@@ -14,7 +14,7 @@ def get_user_orders(user):
     )
 
 
-def get_order_by_id(*,order_id, user):
+def get_user_order_by_id(*,order_id, user):
     """
     Return a single order belonging to a user.
     """
@@ -26,7 +26,23 @@ def get_order_by_id(*,order_id, user):
             .get(
                 pk=order_id,
                 user=user,
+                # status=Order.OrderStatus.PENDING,
             )
         )
     except Order.DoesNotExist:
         raise Http404("Order not found.")
+    
+def get_pending_order_by_id(*, order_id, user):
+    try:
+        return (
+            Order.objects
+            .select_related("shipping_address")
+            .prefetch_related("items__product")
+            .get(
+                pk=order_id,
+                user=user,
+                status=Order.OrderStatus.PENDING,
+            )
+        )
+    except Order.DoesNotExist:
+        raise Http404("Pending order not found.")

@@ -1,5 +1,8 @@
 from django.urls import path
-
+from payments.views.admin.payment import (
+    AdminPaymentListAPIView,
+    AdminPaymentDetailAPIView,
+)
 from payments.views.admin.refund import (
     AdminRefundListAPIView,
     AdminRefundDetailAPIView,
@@ -8,6 +11,19 @@ from payments.views.admin.refund import (
 )
 
 urlpatterns = [
+    
+    # Payments
+    path(
+        "",
+        AdminPaymentListAPIView.as_view(),
+        name="admin-payment-list",
+    ),
+
+    path(
+        "<int:pk>/",
+        AdminPaymentDetailAPIView.as_view(),
+        name="admin-payment-detail",
+    ),
 
     path(
         "refunds/",

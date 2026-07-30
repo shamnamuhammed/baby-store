@@ -3,13 +3,13 @@ from django.db.models import F
 import stripe
 from rest_framework.exceptions import ValidationError
 from django.conf import settings
-from addresses.models import Address
 from cart.models import Cart
 from orders.models import (
     Order,
-    OrderItem,
 )
 from payments.models import Payment
+from django.utils import timezone
+from products.services.stock import StockService
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -27,7 +27,10 @@ class PaymentService:
     ):
         """
         Create payment and complete order processing.
+        
         """
+        
+        StockService.validate_stock(order)
 
         # Prevent duplicate payment
         if hasattr(order, "payment"):
@@ -58,6 +61,7 @@ class PaymentService:
 
             payment.status = Payment.PaymentStatus.SUCCESS
             payment.transaction_id = f"COD-{payment.id}"
+            payment.paid_at = timezone.now()
             payment.save(update_fields=[
                     "status",
                     "transaction_id",
@@ -120,6 +124,9 @@ class PaymentService:
             payment_method_types=["card"],
 
             mode="payment",
+            # metadata={
+            #     "payment_id": payment.id,
+            #     }
 
             line_items=[
                 {
@@ -139,9 +146,9 @@ class PaymentService:
                 }
             ],
 
-            success_url="http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}",
+            success_url="http://127.0.0.1:3000/payment/success?session_id={CHECKOUT_SESSION_ID}",
 
-            cancel_url="http://localhost:5173/payment/cancel",
+            cancel_url="http://127.0.0.1:3000/payment/cancel",
         )
 
         payment.stripe_checkout_session_id = checkout_session.id

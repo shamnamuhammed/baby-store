@@ -9,7 +9,7 @@ from core.response import success_response
 
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
-from Backend.payments.selectors.public.payment import get_payment_by_id
+from payments.selectors.public import get_payment_by_id
 
 @extend_schema(
     summary="Payment Detail",

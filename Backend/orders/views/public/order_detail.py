@@ -3,7 +3,7 @@ from core.response import success_response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from orders.selectors.public import get_order_by_id
+from orders.selectors.public import get_user_order_by_id
 from orders.serializers import OrderSerializer
 
 
@@ -19,7 +19,7 @@ class OrderDetailAPIView(APIView):
 
     def get(self, request, pk):
         
-        order = get_order_by_id(
+        order = get_user_order_by_id(
             order_id=pk,
             user=request.user,
         )

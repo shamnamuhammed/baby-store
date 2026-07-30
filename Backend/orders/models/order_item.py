@@ -20,9 +20,30 @@ class OrderItem(models.Model):
 
     quantity = models.PositiveIntegerField()
 
-    price = models.DecimalField(
+    # Original product price
+    unit_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+    )
+
+    # Discount per unit
+    discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    # Price after discount (per unit)
+    final_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
+
+    # Optional: useful for order history
+    offer_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
     )
 
     subtotal = models.DecimalField(

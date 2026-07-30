@@ -4,10 +4,14 @@ venv/
 __pycache__/
 *.py[cod]
 *.sqlite3
+*.pyc
 
 # Environment
 .env
 Backend/.env
+
+# Virtual Environment
+venv/
 
 # Django
 media/
@@ -33,3 +37,6 @@ Thumbs.db
 
 
 .agents/
+
+# Celery Beat
+celerybeat-schedule*

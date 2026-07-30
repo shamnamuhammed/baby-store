@@ -1,13 +1,22 @@
 from django.urls import path
 
-from payments.webhooks import StripeWebhookAPIView
+
+from payments.views.public.webhooks import StripeWebhookAPIView
+
+from payments.views.public.webhooks import StripeWebhookAPIView
+
 from payments.views.public import (
     CreatePaymentAPIView,
     PaymentListAPIView,
     PaymentDetailAPIView)
-from views.public.refund_payment import (
+from payments.views.public.refund_payment import (
     RefundPaymentAPIView,
+    
 )
+
+
+
+
 urlpatterns = [
     
     
@@ -37,7 +46,5 @@ urlpatterns = [
         RefundPaymentAPIView.as_view(),
         name="refund-payment",
     ),
-
-    
-    
+   
 ]
