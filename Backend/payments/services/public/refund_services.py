@@ -4,8 +4,8 @@ from rest_framework.exceptions import ValidationError
 from payments.models import Payment
 from orders.models import Order
 from products.services.stock import StockService
-
-
+from notifications.tasks import send_refund_email_task
+from django.utils import timezone
 class RefundService:
 
     @staticmethod
@@ -102,6 +102,8 @@ class RefundService:
                 "refunded_at",
             ]
         )
+        
+        send_refund_email_task.delay(payment.id)
 
         order = payment.order
 

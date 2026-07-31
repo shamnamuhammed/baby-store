@@ -10,7 +10,7 @@ from orders.models import (
 from payments.models import Payment
 from django.utils import timezone
 from products.services.stock import StockService
-
+from notifications.tasks import send_order_confirmation_email_task
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
@@ -87,6 +87,9 @@ class PaymentService:
             # Confirm Order
             order.status = Order.OrderStatus.CONFIRMED
             order.save(update_fields=["status"])
+            
+            # Send order confirmation email
+            send_order_confirmation_email_task.delay(order.id)
 
 
             # Clear Cart
