@@ -21,7 +21,9 @@ def approve_refund(*, payment):
    
 
 
-def reject_refund(*, payment,reason):
+
+def reject_refund(*, payment,reason=""):
+
 
     if payment.status != Payment.PaymentStatus.REFUND_REQUESTED:
 

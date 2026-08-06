@@ -7,8 +7,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_str
-
+from notifications.tasks import send_welcome_email_task
 from users.selectors.public import get_user_by_email
+from notifications.tasks import send_reset_password_email_task
 
 User = get_user_model()
 
@@ -19,8 +20,12 @@ def register_user(validated_data):
         "confirm_password", 
         None)
 
-    return User.objects.create_user(
+    user= User.objects.create_user(
         **validated_data)
+    
+    send_welcome_email_task.delay(user.id)
+    
+    return user
 
 
 def login_user(email, password):
@@ -79,11 +84,13 @@ def forgot_password(email):
         user
     )
 
-    return {
-        # "user": user,
-        "uid": uid,
-        "token": token,
-    }
+    send_reset_password_email_task.delay(
+        user.id,
+        uid,
+        token,
+    )
+
+    return {}
     
 def reset_password(uid, token, new_password):
     """

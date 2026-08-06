@@ -25,7 +25,7 @@ class ForgotPasswordAPIView(APIView):
                 )
         
         return success_response(
-            message="Password reset token generated.",
+            message="Password reset link sent to your email.",
             data=result,
             status_code=status.HTTP_200_OK,
         )

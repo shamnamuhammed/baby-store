@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -48,3 +49,5 @@ class ProductReviewAPIView(APIView):
             data=ReviewSerializer(review).data,
             status_code=status.HTTP_201_CREATED,
         )
+
+

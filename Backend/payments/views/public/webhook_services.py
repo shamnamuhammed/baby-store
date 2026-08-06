@@ -6,7 +6,7 @@ from cart.models import Cart
 from orders.models import Order
 from products.models import Product
 from products.services.stock import StockService
-
+from notifications.tasks import send_order_confirmation_email_task
 class StripeWebhookService:
 
     @staticmethod
@@ -27,6 +27,8 @@ class StripeWebhookService:
         # 3. Confirm order
         order.status = Order.OrderStatus.CONFIRMED
         order.save(update_fields=["status"])
+        
+        send_order_confirmation_email_task.delay(order.id)
 
         # 4. Update payment
         payment.status = Payment.PaymentStatus.SUCCESS
