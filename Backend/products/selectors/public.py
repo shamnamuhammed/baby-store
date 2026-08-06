@@ -1,5 +1,5 @@
 from django.http import Http404
-
+from django.db.models import Avg, Count
 from products.models import Product
 
 
@@ -17,6 +17,10 @@ def get_product_by_id(*, product_id):
             )
             .prefetch_related(
                 "images",
+            )
+            .annotate(
+                average_rating=Avg("reviews__rating"),
+                review_count=Count("reviews"),
             )
             .get(
                 id=product_id,

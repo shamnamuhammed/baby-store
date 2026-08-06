@@ -11,7 +11,7 @@ from offers.selectors.public import (
 from offers.services.public import (
     get_best_discount,
 )
-
+from products.selectors.public import get_product_by_id
 
 class ProductSerializer(serializers.ModelSerializer):
 
@@ -32,7 +32,13 @@ class ProductSerializer(serializers.ModelSerializer):
     final_price = serializers.SerializerMethodField()
 
     offer = serializers.SerializerMethodField()
-    
+    average_rating = serializers.FloatField(
+        read_only=True,
+    )
+
+    review_count = serializers.IntegerField(
+        read_only=True,
+    )
     def get_offer_data(self, obj):
 
         product_offer = get_active_product_offer(
@@ -84,7 +90,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "offer",
             "discount",
             "final_price",
-            
+            "average_rating",
+            "review_count",
         )
 
         read_only_fields = (
@@ -117,7 +124,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     final_price = serializers.SerializerMethodField()
 
     offer = serializers.SerializerMethodField()
-    
+    average_rating = serializers.FloatField(
+        read_only=True,
+    )
+
+    review_count = serializers.IntegerField(
+        read_only=True,
+    )
     def get_offer_data(self, obj):
 
         product_offer = get_active_product_offer(
@@ -171,4 +184,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "is_active",
             "is_featured",
             "images",
+            "average_rating",
+            "review_count",
+
         )

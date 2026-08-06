@@ -7,10 +7,10 @@ from products.serializers.public.product import (
     ProductDetailSerializer,
 )
 from products.selectors.products import get_products
-
+from django.http import Http404
 from core.pagination import CustomPagination
 from drf_spectacular.utils import extend_schema
-
+from products.selectors.public import get_product_by_id
 
 class ProductListCreateAPIView(APIView):
     
@@ -87,8 +87,11 @@ class ProductDetailAPIView(APIView):
     def get_object(self, pk):
         
         try:
-            return Product.objects.get(pk=pk)
-        except Product.DoesNotExist:
+            return get_product_by_id(
+                product_id=pk,
+            )
+
+        except Http404:
             return None
         
     

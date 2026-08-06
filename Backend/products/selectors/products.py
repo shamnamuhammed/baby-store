@@ -1,6 +1,6 @@
 from products.models import Product
 from products.filters import ProductFilter
-
+from django.db.models import Avg, Count
 
 def get_products(request, queryset=None):
     """
@@ -9,6 +9,12 @@ def get_products(request, queryset=None):
 
     if queryset is None:
         queryset = Product.objects.all()
+
+    queryset = queryset.annotate(
+        average_rating=Avg("reviews__rating"),
+        review_count=Count("reviews"),
+    )
+        
 
     # Search
     search = request.query_params.get("search")
