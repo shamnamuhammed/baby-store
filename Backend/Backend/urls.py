@@ -100,6 +100,10 @@ urlpatterns = [
             "api/admin/offers/",
             include("offers.urls.admin"),
         ),
+      
+      path("api/", include("reviews.urls")),
+      
+      
             
     
 ]

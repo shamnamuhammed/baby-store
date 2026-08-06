@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "coupons",
     "offers",
     "django_celery_beat",
+    'reviews',
 
 
 ]
