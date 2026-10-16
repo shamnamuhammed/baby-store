@@ -208,6 +208,7 @@ export default function Register() {
                 <InputField
                   id="username"
                   label="Username"
+                  autoComplete="username"
                   placeholder="babylover2024"
                   icon={User}
                   required
@@ -221,6 +222,7 @@ export default function Register() {
                   <InputField
                     id="first_name"
                     label="First Name"
+                    autoComplete="given-name"
                     placeholder="Emma"
                     required
                     error={errors.first_name}
@@ -231,6 +233,7 @@ export default function Register() {
                   <InputField
                     id="last_name"
                     label="Last Name"
+                    autoComplete="family-name"
                     placeholder="Watson"
                     required
                     error={errors.last_name}
@@ -244,6 +247,7 @@ export default function Register() {
                   id="email"
                   label="Email Address"
                   type="email"
+                  autoComplete="email"
                   placeholder="parent@example.com"
                   icon={Mail}
                   required
@@ -257,6 +261,7 @@ export default function Register() {
                   id="phone_number"
                   label="Phone Number"
                   type="tel"
+                  autoComplete="tel"
                   placeholder="+1 234 567 8900"
                   icon={Phone}
                   required
@@ -272,6 +277,7 @@ export default function Register() {
                       id="password"
                       label="Password"
                       type={showPass ? 'text' : 'password'}
+                      autoComplete="new-password"
                       placeholder="Create a strong password"
                       icon={Lock}
                       required
@@ -292,6 +298,7 @@ export default function Register() {
                     id="confirm_password"
                     label="Confirm Password"
                     type={showConfirm ? 'text' : 'password'}
+                    autoComplete="new-password"
                     placeholder="Repeat your password"
                     icon={Lock}
                     required

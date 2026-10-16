@@ -1,21 +1,36 @@
-# Python
-Backend/venv/
-venv/
-__pycache__/
-*.py[cod]
-*.sqlite3
-*.pyc
-
-# Environment
+# Environment / secrets
 .env
+.env.*
+!.env.example
 Backend/.env
 
-# Virtual Environment
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.pyc
+Backend/venv/
 venv/
 
+# Virtual environment
+venv/
+.venv/
+env/
+
 # Django
-media/
+db.sqlite3
+*.log
+
+# Static / media generated files
 staticfiles/
+media/
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Node
 node_modules/
@@ -40,3 +55,19 @@ Thumbs.db
 
 # Celery Beat
 celerybeat-schedule*
+
+# Docker
+*.pid
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Temporary files
+*.tmp
+Backend/offer_debug.txt
+frontend/offer_debug.txt
+lilbunny-audit.txt
+frontend/lint-report.json
+Backend/products/serializers/public/product.py.bak
+Backend/offer_debug.txt

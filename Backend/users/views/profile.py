@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from core.response import success_response
 from users.serializers.public.user import UserProfileSerializer
 from drf_spectacular.utils import extend_schema
-
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 
 @extend_schema(
@@ -15,6 +15,7 @@ from drf_spectacular.utils import extend_schema
 class UserProfileAPIView(APIView):
     
     permission_classes= [IsAuthenticated]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     
     def get(self,request):

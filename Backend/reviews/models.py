@@ -1,12 +1,9 @@
 from django.db import models
-<<<<<<< HEAD
+
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
 )
-# Create your models here.
-from django.db import models
-
 from users.models import User
 from products.models import Product
 

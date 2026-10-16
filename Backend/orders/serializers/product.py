@@ -1,4 +1,6 @@
+
 from rest_framework import serializers
+
 from products.models import Product
 
 
@@ -15,8 +17,20 @@ class OrderProductSerializer(serializers.ModelSerializer):
         )
 
     def get_image(self, obj):
-        primary = obj.images.filter(is_primary=True).first()
+        images = list(obj.images.all())
 
-        if primary:
-            return primary.image.url
-        return None
+        if not images:
+            return None
+
+        selected_image = next(
+            (image for image in images if image.is_primary),
+            images[0],
+        )
+
+        if not selected_image.image:
+            return None
+
+        try:
+            return selected_image.image.url
+        except ValueError:
+            return None

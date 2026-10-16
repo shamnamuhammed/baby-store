@@ -1,11 +1,18 @@
 import stripe
 
 from django.conf import settings
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-from payments.selectors.public.payment import get_payment_by_session_id
-from payments.views.public.webhook_services import StripeWebhookService
+
+from payments.selectors.public.payment import (
+    get_payment_by_session_id,
+)
+from payments.views.public.webhook_services import (
+    StripeWebhookService,
+)
+
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
@@ -17,7 +24,9 @@ class StripeWebhookAPIView(APIView):
     def post(self, request):
 
         payload = request.body
-        sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+        sig_header = request.META.get(
+            "HTTP_STRIPE_SIGNATURE"
+        )
 
         try:
             event = stripe.Webhook.construct_event(
@@ -28,34 +37,37 @@ class StripeWebhookAPIView(APIView):
 
         except ValueError:
             return Response(
-                {"message": "Invalid payload."},
+                {
+                    "message": "Invalid payload."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         except stripe.error.SignatureVerificationError:
             return Response(
-                {"message": "Invalid signature."},
+                {
+                    "message": "Invalid signature."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if event["type"] == "checkout.session.completed":
 
             session = event["data"]["object"]
-            try:
-                payment = get_payment_by_session_id(
-                    session["id"]
-                )
 
-                StripeWebhookService.payment_success(
-                    payment=payment,
-                    payment_intent=session["payment_intent"],
-                )
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                raise
+            payment = get_payment_by_session_id(
+                session["id"]
+            )
+
+            StripeWebhookService.payment_success(
+                payment=payment,
+                payment_intent=session["payment_intent"],
+                stripe_session=session,
+            )
 
         return Response(
-                {"message": "Webhook received."},
+            {
+                "message": "Webhook received."
+            },
             status=status.HTTP_200_OK,
         )

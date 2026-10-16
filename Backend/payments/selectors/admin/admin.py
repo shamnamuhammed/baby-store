@@ -15,6 +15,7 @@ def get_admin_payments(request):
             "order",
             "order__user",
         )
+        .all()
     )
     
     

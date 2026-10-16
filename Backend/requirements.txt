@@ -33,7 +33,7 @@ python-crontab==3.3.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 PyYAML==6.0.3
-redis==8.0.1
+redis>=5.0.0,<8.0.0
 referencing==0.37.0
 requests==2.34.2
 rpds-py==2026.6.3
@@ -48,3 +48,7 @@ uritemplate==4.2.0
 urllib3==2.7.0
 vine==5.1.0
 wcwidth==0.8.2
+channels==4.3.2
+channels-redis==4.3.0
+daphne==4.2.3
+google-auth==2.59.0

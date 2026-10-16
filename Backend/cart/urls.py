@@ -3,7 +3,8 @@ from django.urls import path
 from cart.views import( AddToCartAPIView ,
                        ViewCartAPIView,
                        UpdateCartItemAPIView,
-                       RemoveCartItemAPIView,)
+                       RemoveCartItemAPIView,
+                        ClearCartAPIView,)
 
 urlpatterns = [
     path(
@@ -30,4 +31,8 @@ urlpatterns = [
         RemoveCartItemAPIView.as_view(),
         name="remove-cart-item",
     ),
+    path(
+        "clear/",
+        ClearCartAPIView.as_view(),
+        name="clear-cart"),
 ]

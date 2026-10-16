@@ -10,7 +10,9 @@ def get_user_orders(user):
         Order.objects
         .filter(user=user)
         .select_related("shipping_address")
-        .prefetch_related("items__product")
+        .prefetch_related(
+            "items__product",
+            "items__product__images")
     )
 
 
@@ -22,7 +24,9 @@ def get_user_order_by_id(*,order_id, user):
         return (
             Order.objects
             .select_related("shipping_address")
-            .prefetch_related("items__product")
+            .prefetch_related(
+                "items__product",
+                 "items__product__images")
             .get(
                 pk=order_id,
                 user=user,

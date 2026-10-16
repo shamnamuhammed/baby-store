@@ -234,10 +234,18 @@ class UpdateCartItemAPIView(APIView):
         serializer = UpdateCartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        cart_item = CartItem.objects.get(
-            pk=pk,
-            cart__user=request.user
-        )
+        try:
+            cart_item = CartItem.objects.get(
+                pk=pk,
+                cart__user=request.user
+            )
+        except CartItem.DoesNotExist:
+            return Response(
+                {
+                    "message": "Cart item not found."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         quantity = serializer.validated_data["quantity"]
 
@@ -258,8 +266,6 @@ class UpdateCartItemAPIView(APIView):
             message="Quantity updated.",
             data=CartItemSerializer(cart_item).data
         )
-
-    put = patch
         
         
 @extend_schema(

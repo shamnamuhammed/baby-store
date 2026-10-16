@@ -10,6 +10,31 @@ const api = axios.create({
   },
 });
 
+// Add CSRF token to unsafe requests
+api.interceptors.request.use(
+  (config) => {
+    const csrfToken = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+
+
+
+    if (
+      csrfToken &&
+      ['post', 'put', 'patch', 'delete'].includes(
+        config.method?.toLowerCase()
+      )
+    ) {
+      config.headers['X-CSRFToken'] = decodeURIComponent(csrfToken);
+
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Track if we're currently refreshing to prevent infinite loops
 let isRefreshing = false;
 let failedQueue = [];
@@ -31,11 +56,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+   const isPublicAuthEndpoint =
+  originalRequest.url?.includes('/login/') ||
+      originalRequest.url?.includes('/register/') ||
+      originalRequest.url?.includes('/forgot-password/') ||
+      originalRequest.url?.includes('/reset-password/') ||
+      originalRequest.url?.includes('/me/');
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url?.includes('/token/refresh/') &&
-      !originalRequest.url?.includes('/login/')
+      !isPublicAuthEndpoint
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

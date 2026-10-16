@@ -20,24 +20,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import (SpectacularAPIView,SpectacularSwaggerView,)
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path
         (
-        'api/users/', 
+        'api/users/',
         include("users.urls.public")),
-        
+
     path
         (
-        "api/products/", 
-        include("products.urls.public")), 
-        
+        "api/products/",
+        include("products.urls.public")),
+
     path(
         "api/cart/",
             include("cart.urls"),
             ),
-    path("api/schema/", 
-         SpectacularAPIView.as_view(), 
+    path("api/schema/",
+         SpectacularAPIView.as_view(),
          name="schema"),
 
     path(
@@ -45,12 +46,12 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
         ),
-    
+
     path(
         "api/wishlist/",
         include("wishlist.urls"),
         ),
-    
+
     path(
         "api/orders/",
         include("orders.urls.public"),
@@ -59,17 +60,17 @@ urlpatterns = [
         "api/admin/orders/",
         include("orders.urls.admin"),
         ),
-    
+
     path(
-        "api/users/",
+        "api/admin/users/",
         include("users.urls.admin"),
     ),
-        
+
     path(
         "api/addresses/",
         include("addresses.urls"),
         ),
-    
+
     path(
         "api/payments/",
         include("payments.urls.public"),
@@ -78,14 +79,12 @@ urlpatterns = [
         "api/admin/payments/",
         include("payments.urls.admin"),
     ),
-  
-     
+
       path(
         "api/admin/products/",
         include("products.urls.admin"),
     ),
-      
-      
+
        path(
         "api/admin/coupons/",
         include("coupons.urls.admin"),
@@ -95,17 +94,27 @@ urlpatterns = [
         "api/coupons/",
         include("coupons.urls.public"),
     ),
-      
+
       path(
             "api/admin/offers/",
             include("offers.urls.admin"),
         ),
-      
+
+        path(
+            "api/offers/",
+            include("offers.urls.public"),
+        ),
+
+
       path("api/", include("reviews.urls")),
-      
-      
-            
-    
+
+      path(
+            "api/notifications/",
+            include("notifications.urls.public"),
+        ),
+
+
+
 ]
 
 

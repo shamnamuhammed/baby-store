@@ -139,8 +139,11 @@ def create_order(*, user, address_id):
 
 def cancel_order(*, order_id, user):
     """
-    Cancel a pending order and restore product stock.
-    """
+    Cancel a pending order.
+
+        Stock is not restored here because stock is only reduced
+        after successful payment.
+        """
 
     try:
         order = (
@@ -166,16 +169,6 @@ def cancel_order(*, order_id, user):
         )
 
     with transaction.atomic():
-
-        # for item in order.items.select_related("product"):
-
-        #     product = item.product
-
-        #     product.stock_quantity = F("stock_quantity") + item.quantity
-
-        #     product.save(
-        #         update_fields=["stock_quantity"],
-        #     )
 
         order.status = Order.OrderStatus.CANCELLED
 

@@ -100,20 +100,16 @@ class LatestUserSerializer(serializers.ModelSerializer):
             "date_joined",
         )
         
+
 class MonthlyRevenueSerializer(serializers.Serializer):
+    month = serializers.DateTimeField(format="%Y-%m-%d")
+    revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
 
-    month = serializers.DateField()
 
-    revenue = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-    )
-    
 class MonthlyOrderSerializer(serializers.Serializer):
-
-    month = serializers.DateField()
-
+    month = serializers.DateTimeField(format="%Y-%m-%d")
     total_orders = serializers.IntegerField()
+
     
 
 class TopSellingProductSerializer(serializers.Serializer):

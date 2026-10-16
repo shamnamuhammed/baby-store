@@ -1,3 +1,4 @@
+
 from rest_framework import serializers
 
 from payments.models import Payment
@@ -27,6 +28,7 @@ class AdminRefundSerializer(serializers.ModelSerializer):
             "payment_method",
             "status",
             "refund_reason",
+            "rejection_reason",
             "refunded_amount",
             "transaction_id",
             "created_at",

@@ -51,6 +51,9 @@ class Order(models.Model):
         default=0,
     )
 
+    stock_reduced = models.BooleanField(default=False)
+    stock_restored = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(
         auto_now_add=True,
     )

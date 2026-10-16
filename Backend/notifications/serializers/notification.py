@@ -3,11 +3,25 @@ from rest_framework import serializers
 from notifications.models import Notification
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class NotificationSerializer(
+    serializers.ModelSerializer
+):
+
     class Meta:
         model = Notification
-        fields = "__all__"
-        read_only_fields = (
+        fields = [
             "id",
+            "title",
+            "message",
+            "notification_type",
+            "is_read",
             "created_at",
-        )
+        ]
+
+        read_only_fields = [
+            "id",
+            "title",
+            "message",
+            "notification_type",
+            "created_at",
+        ]

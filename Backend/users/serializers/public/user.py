@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from users.selectors.public import (
     email_exists,
@@ -15,9 +16,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=(
-            "username","first_name",
-            "last_name","email","phone_number",
-            "password","confirm_password"        )
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "password",
+            "confirm_password"        )
         
         
         extra_kwargs={
@@ -55,34 +60,39 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirm_password" : "password do not match"
             })
+            # Apply Django's configured password validators
+        validate_password(
+            password,
+            user=self.instance,
+        )
             
         return attrs
     
         
+
 class UserProfileSerializer(serializers.ModelSerializer):
-      
-      
-      class Meta:
-              model=User
-              fields =[
-                  "id",
-                  "username",
-                  "first_name",
-                  "last_name",
-                  "email",
-                  "phone_number",
-                  "profile_image",
-                  "date_of_birth",
-                  "gender",
-                  "is_verified",
-                  "created_at",
-                  "updated_at",
-              ]   
-              
-              
-              read_only_fields=[
-                  "id","email",
-                  "is_verified",
-                  "created_at",
-                  "updated_at",
-              ]
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "profile_image",
+            "date_of_birth",
+            "gender",
+            "is_verified",
+            "is_staff",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "email",
+            "is_verified",
+            "is_staff",
+            "created_at",
+            "updated_at",
+        ]

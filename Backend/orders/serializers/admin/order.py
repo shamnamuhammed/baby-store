@@ -41,6 +41,8 @@ class AdminOrderSerializer(serializers.ModelSerializer):
             "customer_email",
             "status",
             "total_amount",
+            "discount_amount",
+            "final_amount",
             "shipping_address",
             "items",
             "created_at",

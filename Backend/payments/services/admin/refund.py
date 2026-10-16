@@ -1,47 +1,77 @@
-from django.utils import timezone
-
+from django.db import transaction
 from rest_framework.exceptions import ValidationError
-from payments.services.public import RefundService
-from payments.models import Payment
 
+from notifications.models import Notification
+from notifications.services.public.notification import NotificationService
+from payments.models import Payment
+from payments.services.public import RefundService
 
 def approve_refund(*, payment):
+    """
+    Approve a refund request.
 
-    if payment.status != Payment.PaymentStatus.REFUND_REQUESTED:
+    RefundService.complete_refund() performs the actual
+    concurrency-safe refund processing.
+    """
 
-        raise ValidationError(
-            {
-                "message":
-                "Refund request not found."
-            }
-        )
     return RefundService.complete_refund(
-        payment=payment,
+        payment=payment
     )
-   
 
 
+@transaction.atomic
+def reject_refund(*, payment, reason=""):
+    """
+    Reject a refund request.
 
-def reject_refund(*, payment,reason=""):
+    REFUND_REQUESTED -> SUCCESS
 
+    Order remains CONFIRMED.
+    Stock remains reduced.
+    """
 
-    if payment.status != Payment.PaymentStatus.REFUND_REQUESTED:
+    locked_payment = (
+    Payment.objects
+    .select_for_update()
+    .select_related("order")
+    .get(pk=payment.pk)
+)
 
-        raise ValidationError(
-            {
-                "message":
-                "Refund request not found."
-            }
-        )
+    if (
+        locked_payment.status
+        != Payment.PaymentStatus.REFUND_REQUESTED
+    ):
+        raise ValidationError({
+            "message": "Refund request not found."
+        })
 
-    payment.status = Payment.PaymentStatus.SUCCESS
-    payment.rejection_reason = reason
+    if not reason or not reason.strip():
+        raise ValidationError({
+            "message": "Rejection reason is required."
+        })
 
-    payment.save(
+    locked_payment.status = Payment.PaymentStatus.SUCCESS
+    locked_payment.rejection_reason = reason.strip()
+
+    locked_payment.save(
         update_fields=[
             "status",
             "rejection_reason",
+            "updated_at",
         ]
     )
 
-    return payment
+    transaction.on_commit(
+        lambda: NotificationService.create_notification(
+            user=locked_payment.order.user,
+            title="Refund Rejected",
+            message=(
+                f"Your refund request for order "
+                f"#{locked_payment.order.id} was rejected. "
+                f"Reason: {locked_payment.rejection_reason}"
+            ),
+            notification_type=Notification.NotificationType.REFUND,
+        )
+    )
+
+    return locked_payment

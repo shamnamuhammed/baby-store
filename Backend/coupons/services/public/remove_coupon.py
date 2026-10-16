@@ -1,44 +1,32 @@
 from django.db import transaction
-from django.db.models import F
-
 from rest_framework.exceptions import ValidationError
-from coupons.models import Coupon 
-from coupons.models import CouponUsage
+from decimal import Decimal
 
 
 @transaction.atomic
-def remove_coupon(*, order):
+def remove_coupon(*, order, user):
+
+    if order.status != order.OrderStatus.PENDING:
+        raise ValidationError({
+            "message": "Coupon can only be removed from a pending order."
+        })
 
     if not order.coupon:
-        raise ValidationError(
-            {
-                "message": "No coupon applied."
-            }
-        )
+        raise ValidationError({
+            "message": "No coupon is applied to this order."
+        })
 
-    coupon = order.coupon
-
-    order.total_amount += order.discount_amount
-
-    order.discount_amount = 0
     order.coupon = None
+    order.discount_amount = Decimal("0.00")
+    order.final_amount = order.total_amount
 
     order.save(
         update_fields=[
             "coupon",
             "discount_amount",
-            "total_amount",
+            "final_amount",
+            "updated_at",
         ]
     )
-
-    CouponUsage.objects.filter(
-        order=order,
-    ).delete()
-
-    Coupon.objects.filter(pk=coupon.pk).update(
-        used_count=F("used_count") - 1
-    )
-
-    coupon.refresh_from_db()
 
     return order

@@ -13,15 +13,12 @@ class LoginSerializer(serializers.Serializer):
         email=attrs.get("email")
         password=attrs.get("password")
         
-        print("=" * 50)
-        print("EMAIL:", repr(email))
-        print("PASSWORD:", repr(password))
 
         user=authenticate(
             email=email,
             password=password
         )
-        print("AUTH USER:", user)
+
         if not user:
             raise serializers.ValidationError(
                 "Invalid email or password."
@@ -30,6 +27,10 @@ class LoginSerializer(serializers.Serializer):
         attrs["user"]=user
         return attrs
     
-    
+class GoogleLoginSerializer(serializers.Serializer):
+    token = serializers.CharField(
+        required=True,
+        trim_whitespace=True,
+    )
     
    

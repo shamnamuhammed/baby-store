@@ -1,15 +1,17 @@
+from django.conf import settings
+
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 from core.response import success_response
 
 
 class LogoutAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
 
@@ -19,7 +21,7 @@ class LogoutAPIView(APIView):
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            except Exception:
+            except TokenError:
                 pass
 
         response = success_response(
@@ -27,7 +29,14 @@ class LogoutAPIView(APIView):
             status_code=status.HTTP_200_OK,
         )
 
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response.delete_cookie(
+            "access_token",
+            samesite=settings.AUTH_COOKIE_SAMESITE,
+        )
+
+        response.delete_cookie(
+            "refresh_token",
+            samesite=settings.AUTH_COOKIE_SAMESITE,
+        )
 
         return response

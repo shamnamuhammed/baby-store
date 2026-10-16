@@ -11,10 +11,8 @@ from payments.selectors.admin.refund import (
     get_admin_refunds,
     get_admin_refund_by_id,
 )
-
-from payments.serializers.admin.refund import (
-    AdminRefundSerializer,
-)
+from payments.serializers.admin.reject_refund import ( AdminRejectRefundSerializer, )
+from payments.serializers.admin.refund import  AdminRefundSerializer
 
 from payments.services.admin.refund import (
     approve_refund,
@@ -95,25 +93,33 @@ class ApproveRefundAPIView(APIView):
         )
 
 
-class RejectRefundAPIView(APIView):
 
+class RejectRefundAPIView(APIView):
     permission_classes = [IsAdmin]
 
     @extend_schema(
         tags=["Admin Refunds"],
+        request=AdminRejectRefundSerializer,
         responses=AdminRefundSerializer,
     )
     def patch(self, request, pk):
 
+        serializer = AdminRejectRefundSerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
         payment = get_admin_refund_by_id(
-            payment_id=pk,
+            payment_id=pk
         )
 
         payment = reject_refund(
             payment=payment,
+            reason=serializer.validated_data["reason"],
         )
 
         return success_response(
             message="Refund rejected successfully.",
             data=AdminRefundSerializer(payment).data,
+            status_code=status.HTTP_200_OK,
         )

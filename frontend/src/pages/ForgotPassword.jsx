@@ -68,7 +68,7 @@ export default function ForgotPassword() {
                   </div>
                   <h2 className="font-display text-2xl font-bold text-white">Forgot password?</h2>
                   <p className="text-zinc-400 text-sm mt-1">
-                    Enter your email and we'll send you a reset link.
+                    Enter your email and we will send you a reset link.
                   </p>
                 </div>
 
@@ -103,7 +103,7 @@ export default function ForgotPassword() {
                 </div>
                 <h3 className="font-display text-xl font-bold text-white mb-2">Check your email</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                  We've sent a password reset link to your email address.
+                  We have sent a password reset link to your email address.
                 </p>
               </motion.div>
             )}

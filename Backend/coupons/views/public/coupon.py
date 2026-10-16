@@ -57,15 +57,15 @@ class ApplyCouponAPIView(APIView):
         )
 
 
-class RemoveCouponAPIView(APIView):
 
+class RemoveCouponAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
         tags=["Coupons"],
+        summary="Remove coupon from pending order",
     )
     def delete(self, request, order_id):
-
         order = get_pending_order_by_id(
             order_id=order_id,
             user=request.user,
@@ -73,8 +73,14 @@ class RemoveCouponAPIView(APIView):
 
         remove_coupon(
             order=order,
+            user=request.user,
         )
 
         return success_response(
             message="Coupon removed successfully.",
+            data={
+                "order_id": order.id,
+                "discount": "0.00",
+                "final_total": str(order.final_amount),
+            },
         )

@@ -19,14 +19,13 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
-# DEBUG = config("DEBUG",cast=bool)
-DEBUG = True
+
 
 # stripe configure
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
@@ -38,9 +37,16 @@ STRIPE_WEBHOOK_SECRET = config(
     default="",
 )
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = config("DEBUG", cast=bool, default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in config(
+        "ALLOWED_HOSTS",
+        default="127.0.0.1,localhost"
+    ).split(",")
+    if host.strip()
+]
 # default database configuration
 
 
@@ -48,6 +54,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+     "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,7 +79,8 @@ INSTALLED_APPS = [
     "coupons",
     "django_celery_beat",
     "reviews",
-    
+    "channels",
+
 
 
 ]
@@ -106,7 +114,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Backend.wsgi.application'
-
+ASGI_APPLICATION = "Backend.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -128,20 +136,23 @@ AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK={
     "DEFAULT_AUTHENTICATION_CLASSES":(
-        
+
         "users.authentication.CookieJWTAuthentication",
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    
+    "DEFAULT_SCHEMA_CLASS":
+        "drf_spectacular.openapi.AutoSchema",
+
     # exception handling
-    "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
-    
-    
+    "EXCEPTION_HANDLER":
+        "core.exceptions.custom_exception_handler",
+
+
     # pagination
-    "DEFAULT_PAGINATION_CLASS": "core.pagination.CustomPagination",
+    "DEFAULT_PAGINATION_CLASS":
+        "core.pagination.CustomPagination",
     "PAGE_SIZE": 10,
-    
-    
+
+
     "DEFAULT_FILTER_BACKENDS": [
 
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -150,18 +161,48 @@ REST_FRAMEWORK={
 
         "rest_framework.filters.OrderingFilter",
     ],
+     "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "user": "1000/hour",
+        "login": "5/minute",
+        "forgot_password": "3/hour"
+    },
 
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+    }
+}
+
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = "Lax"
+
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = "Lax"
+
+AUTH_COOKIE_SECURE = not DEBUG
+AUTH_COOKIE_HTTPONLY = True
+AUTH_COOKIE_SAMESITE = "Lax"
 
 # JWT -authentication
 
 SIMPLE_JWT ={
     "ACCESS_TOKEN_LIFETIME":timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME":timedelta(days=7),
-    
+
     "ROTATE_REFRESH_TOKENS" : True,
     "BLACKLIST_AFTER_ROTATION":True,
-    
+
     "AUTH_HEADER_TYPES" :("Bearer",)
     }
 
@@ -174,10 +215,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Password validation
-
-AUTH_PASSWORD_VALIDATORS = [
-    ...
-]
 
 
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -214,6 +251,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -230,6 +269,20 @@ SPECTACULAR_SETTINGS = {
 CELERY_BROKER_URL = "redis://redis:6379/0"
 
 CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                {
+                    "address": "redis://redis:6379/2",
+                    "socket_timeout": 60,
+                }
+            ],
+        },
+    },
+}
 
 CELERY_ACCEPT_CONTENT = [
     "json",
@@ -251,7 +304,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(),
 
     },
-    
+
     "update-coupon-status-every-minute": {
         "task": "coupons.tasks.update_coupon_status",
         "schedule": crontab(),
@@ -272,4 +325,21 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL",
+                            default=EMAIL_HOST_USER,)
+
+# =========================
+# Production Security
+# =========================
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SECURE_SSL_REDIRECT = not DEBUG
+
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+X_FRAME_OPTIONS = "DENY"

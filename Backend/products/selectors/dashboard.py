@@ -60,12 +60,9 @@ def get_dashboard_statistics():
                 status=Order.OrderStatus.CANCELLED
             ).count(),
 
-        "total_revenue":
-            Order.objects.filter(
-                status="delivered"
-            ).aggregate(
-                total=Sum("total_amount")
-            )["total"] or 0,
+        "total_revenue": Order.objects.filter(
+        status=Order.OrderStatus.DELIVERED
+    ).aggregate(total=Sum("total_amount"))["total"] or 0,
     }
     
     

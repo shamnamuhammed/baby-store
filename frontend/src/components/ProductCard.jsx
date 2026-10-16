@@ -36,8 +36,15 @@ export default function ProductCard({ product, onWishlistToggle, isWishlisted = 
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
   const imageUrl = getImageUrl(product.images);
-  const hasDiscount = product.discount_price && parseFloat(product.discount_price) < parseFloat(product.price);
-  const displayPrice = hasDiscount ? product.discount_price : product.price;
+  const originalPrice = Number(
+    product.original_price ?? product.price ?? 0
+  );
+
+  const displayPrice = Number(
+    product.final_price ?? product.price ?? 0
+  );
+
+  const hasDiscount = displayPrice < originalPrice;
   const categoryName = product.category?.name || product.category || 'Baby';
 
   const handleAddToCart = async (e) => {
@@ -118,8 +125,10 @@ export default function ProductCard({ product, onWishlistToggle, isWishlisted = 
             )}
 
             {/* Discount Badge */}
-            <DiscountBadge price={product.price} discountPrice={product.discount_price} />
-
+              <DiscountBadge
+                price={originalPrice}
+                discountPrice={displayPrice}
+              />
             {/* Featured Badge */}
             {product.is_featured && (
               <span className="absolute top-3 right-3 z-10 badge-violet">
@@ -174,19 +183,78 @@ export default function ProductCard({ product, onWishlistToggle, isWishlisted = 
             </h3>
 
             {/* Stars placeholder */}
-            <div className="flex items-center gap-1 mb-3">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className={`w-3 h-3 ${s <= 4 ? 'text-warning-400 fill-current' : 'text-zinc-700'}`} />
-              ))}
-              <span className="text-xs text-zinc-500 ml-1">(4.0)</span>
-            </div>
+
+{/* Product Rating */}
+{(() => {
+  const averageRating = Number(
+    product.average_rating ??
+    product.rating_average ??
+    product.rating ??
+    0
+  );
+
+  const reviewCount = Number(
+    product.review_count ??
+    product.reviews_count ??
+    product.total_reviews ??
+    0
+  );
+
+  const hasRatings = reviewCount > 0 && averageRating > 0;
+
+  return (
+    <div
+      className="flex items-center gap-1 mb-3"
+      aria-label={
+        hasRatings
+          ? `${averageRating.toFixed(1)} out of 5, ${reviewCount} reviews`
+          : 'No ratings yet'
+      }
+    >
+      {hasRatings ? (
+        <>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-3 h-3 ${
+                star <= Math.round(averageRating)
+                  ? 'text-warning-400 fill-current'
+                  : 'text-zinc-700'
+              }`}
+            />
+          ))}
+
+          <span className="text-xs text-zinc-300 ml-1">
+            {averageRating.toFixed(1)}
+          </span>
+
+          <span className="text-xs text-zinc-500">
+            ({reviewCount})
+          </span>
+        </>
+      ) : (
+        <span className="text-xs text-zinc-500">
+          No ratings yet
+        </span>
+      )}
+    </div>
+  );
+})()}
+
 
             {/* Price */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-white">₹{parseFloat(displayPrice).toFixed(2)}</span>
                 {hasDiscount && (
-                  <span className="text-xs text-zinc-500 line-through">₹{parseFloat(product.price).toFixed(2)}</span>
+                  <span className="text-xs text-zinc-500 line-through">
+                      ₹{originalPrice.toFixed(2)}
+                    </span>
+                )}
+                  {hasDiscount && product.offer && (
+                  <p className="mt-1 text-xs font-semibold text-pink-500">
+                    {product.offer}
+                  </p>
                 )}
               </div>
               {product.stock_quantity === 0 ? (

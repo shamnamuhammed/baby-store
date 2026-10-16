@@ -3,3 +3,5 @@ from .admin import (
     CreateOfferSerializer,
     UpdateOfferSerializer,
 )
+
+from .public import PublicOfferSerializer

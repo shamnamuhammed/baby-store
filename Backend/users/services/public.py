@@ -1,30 +1,43 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import default_token_generator
+
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import (
+    urlsafe_base64_decode,
+    urlsafe_base64_encode,
+)
 from django.utils.encoding import force_str
-from notifications.tasks import send_welcome_email_task
+
+from rest_framework.exceptions import AuthenticationFailed
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from notifications.tasks import (
+    send_welcome_email_task,
+    send_reset_password_email_task,
+)
+
 from users.selectors.public import get_user_by_email
-from notifications.tasks import send_reset_password_email_task
+
 
 User = get_user_model()
 
 
 def register_user(validated_data):
-    
     validated_data.pop(
-        "confirm_password", 
-        None)
+        "confirm_password",
+        None,
+    )
 
-    user= User.objects.create_user(
-        **validated_data)
-    
-    send_welcome_email_task.delay(user.id)
-    
+    user = User.objects.create_user(
+        **validated_data
+    )
+
+    send_welcome_email_task.delay(
+        user.id
+    )
+
     return user
 
 
@@ -50,51 +63,69 @@ def login_user(email, password):
         "access": str(refresh.access_token),
         "refresh": str(refresh),
     }
-    
-def change_password(user, old_password, new_password):
+
+
+def change_password(
+    user,
+    old_password,
+    new_password,
+):
     """
     Change the password of an authenticated user.
     """
 
     if not user.check_password(old_password):
-        raise AuthenticationFailed("Old password is incorrect.")
+        raise AuthenticationFailed(
+            "Old password is incorrect."
+        )
 
-    user.set_password(new_password)
-    user.save(update_fields=["password"])
+    user.set_password(
+        new_password
+    )
+
+    user.save(
+        update_fields=["password"]
+    )
 
     return user
 
+
 def forgot_password(email):
     """
-    Generate password reset token and uid.
+    Generate password reset token and send reset email.
+
+    The caller should receive the same response
+    whether or not the email exists.
     """
 
     user = get_user_by_email(email)
 
-    if not user:
-        raise AuthenticationFailed(
-            "No account found with this email."
+    if user:
+        uid = urlsafe_base64_encode(
+            force_bytes(user.pk)
         )
 
-    uid = urlsafe_base64_encode(
-        force_bytes(user.pk)
-    )
+        token = default_token_generator.make_token(
+            user
+        )
 
-    token = default_token_generator.make_token(
-        user
-    )
-
-    send_reset_password_email_task.delay(
-        user.id,
-        uid,
-        token,
-    )
+        send_reset_password_email_task.delay(
+            user.id,
+            uid,
+            token,
+        )
 
     return {}
-    
-def reset_password(uid, token, new_password):
+
+
+def reset_password(
+    uid,
+    token,
+    new_password,
+):
     """
-    Reset user password using uid and token.
+    Reset user password using uid and
+    Django's password-reset token.
     """
 
     try:
@@ -103,10 +134,15 @@ def reset_password(uid, token, new_password):
         )
 
         user = User.objects.get(
-            pk=user_id,
+            pk=user_id
         )
 
-    except Exception:
+    except (
+        ValueError,
+        TypeError,
+        OverflowError,
+        User.DoesNotExist,
+    ):
         raise AuthenticationFailed(
             "Invalid reset link."
         )
@@ -119,10 +155,12 @@ def reset_password(uid, token, new_password):
             "Invalid or expired token."
         )
 
-    user.set_password(new_password)
+    user.set_password(
+        new_password
+    )
 
     user.save(
-        update_fields=["password"],
+        update_fields=["password"]
     )
 
     return user

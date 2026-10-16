@@ -1,14 +1,15 @@
 from celery import shared_task
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 from users.models import User
-
+from products.models import Product
 from orders.models import Order
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import (
+    EmailMultiAlternatives,send_mail)
+from payments.models import Payment
+
 
 @shared_task
 def send_welcome_email_task(user_id):
@@ -78,20 +79,108 @@ def send_order_confirmation_email_task(order_id):
 
 @shared_task
 def send_payment_success_email_task(payment_id):
-    """
-    Send payment success email asynchronously.
-    """
-    print(f"Sending payment success email for payment: {payment_id}")
+
+    try:
+        payment = (
+            Payment.objects
+            .select_related(
+                "order",
+                "order__user",
+            )
+            .get(pk=payment_id)
+        )
+
+    except Payment.DoesNotExist:
+        return "Payment not found."
+
+    user = payment.order.user
+
+    if not user.email:
+        return "User has no email address."
+
+    html_content = render_to_string(
+        "emails/payment_success.html",
+        {
+            "customer_name": user.first_name,
+            "order_id": payment.order_id,
+            "payment_id": payment.id,
+            "amount": payment.amount,
+            "payment_method": payment.payment_method,
+        },
+    )
+
+    email = EmailMultiAlternatives(
+        subject=f"Payment Successful - Order #{payment.order_id}",
+        body=(
+            f"Your payment of ₹{payment.amount} "
+            f"for Order #{payment.order_id} was successful."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email],
+    )
+
+    email.attach_alternative(
+        html_content,
+        "text/html",
+    )
+
+    email.send()
+
+    return f"Payment success email sent for payment {payment.id}"
+
+
+
 
 
 @shared_task
 def send_refund_email_task(payment_id):
-    """
-    Send refund email asynchronously.
-    """
-    print(f"Sending refund email for payment: {payment_id}")
-    
-    
+
+    try:
+        payment = (
+            Payment.objects
+            .select_related(
+                "order",
+                "order__user",
+            )
+            .get(pk=payment_id)
+        )
+
+    except Payment.DoesNotExist:
+        return "Payment not found."
+
+    user = payment.order.user
+
+    if not user.email:
+        return "User has no email address."
+
+    subject = "Refund processed successfully"
+
+    message = f"""
+Hello {user.username},
+
+Your refund has been processed successfully.
+
+Order ID: #{payment.order_id}
+Payment ID: #{payment.id}
+Refund Amount: ₹{payment.refunded_amount}
+
+Refund reason:
+{payment.refund_reason}
+
+Thank you for shopping with us.
+"""
+
+    # Use your existing email utility here.
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+    )
+
+    return f"Refund email sent for payment {payment.id}"
+
+
 @shared_task
 def send_order_shipped_email_task(order_id):
     try:
@@ -148,9 +237,9 @@ def send_order_delivered_email_task(order_id):
 
     except Order.DoesNotExist:
         print(f"Order {order_id} not found")
-        
-        
-        
+
+
+
 from products.models import Product
 
 
@@ -186,8 +275,8 @@ def send_low_stock_alert_task(product_id):
 
     except Product.DoesNotExist:
         print("Product not found")
-        
-        
+
+
 @shared_task
 def send_reset_password_email_task(user_id, uid, token):
 
@@ -199,17 +288,24 @@ def send_reset_password_email_task(user_id, uid, token):
             f"?uid={uid}&token={token}"
         )
 
+        context = {
+            "user": user,
+            "uid": uid,
+            "token": token,
+            "reset_link": reset_link,
+        }
+
         html = render_to_string(
             "emails/reset_password.html",
-            {
-                "user": user,
-                "reset_link": reset_link,
-            },
-        )
+                context,
+            )
 
         email = EmailMultiAlternatives(
             subject="Reset Your Password",
-            body="Reset your password",
+            body=(
+            "Please use the following link to reset your password:"
+            f"{reset_link}"
+        ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[user.email],
         )
@@ -217,5 +313,12 @@ def send_reset_password_email_task(user_id, uid, token):
         email.attach_alternative(html, "text/html")
         email.send()
 
+        print(
+                f"Reset password email sent successfully to {user.email}"
+            )
+
+        return f"Reset password email sent to {user.email}"
+
     except User.DoesNotExist:
-        pass
+        print(f"User with ID {user_id} not found.")
+        return "User not found."

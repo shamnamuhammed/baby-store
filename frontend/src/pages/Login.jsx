@@ -2,9 +2,17 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Mail, Lock, Sparkles, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Sparkles,
+  Eye,
+  EyeOff,
+  ArrowRight,
+} from 'lucide-react';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 
 import { useAuth } from '../context/AuthContext';
 import InputField from '../components/InputField';
@@ -12,25 +20,37 @@ import LoadingButton from '../components/LoadingButton';
 import FormError from '../components/FormError';
 
 const loginSchema = z.object({
-  email: z.string().trim().min(1, 'Email is required').email('Invalid email address'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required')
+    .email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
 const features = [
-  { title: 'Safe & Organic', desc: 'Every product is certified safe for babies' },
-  { title: 'Premium Quality', desc: 'Curated top-tier baby essentials' },
-  { title: 'Fast Delivery', desc: 'Free shipping on orders over ₹50' },
+  {
+    title: 'Safe & Organic',
+    desc: 'Every product is certified safe for babies',
+  },
+  {
+    title: 'Premium Quality',
+    desc: 'Curated top-tier baby essentials',
+  },
+  {
+    title: 'Fast Delivery',
+    desc: 'Free shipping on orders over ₹50',
+  },
 ];
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, googleLogin, refreshUser } = useAuth();
+
   const [generalError, setGeneralError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const from = location.state?.from?.pathname || '/';
 
   const {
     register,
@@ -40,21 +60,91 @@ export default function Login() {
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
-    defaultValues: { email: '', password: '' },
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
+  // Subscribe to individual fields so their current values can be used
+  // without calling watch() directly inside JSX.
+  const emailValue = watch('email');
+  const passwordValue = watch('password');
+
+  const getDestination = (loggedInUser) => {
+    const requestedPath = location.state?.from?.pathname;
+
+    if (loggedInUser?.is_staff === true) {
+      return '/admin';
+    }
+
+    // Customers must never be redirected into the admin area.
+    if (requestedPath?.startsWith('/admin')) {
+      return '/';
+    }
+
+    return requestedPath || '/';
+  };
+
   const onSubmit = async (data) => {
-    console.log(data);
     setLoading(true);
     setGeneralError('');
+
     try {
       await login(data.email, data.password);
-      navigate(from, { replace: true });
+
+      // Load the complete profile, including is_staff.
+      const loggedInUser = await refreshUser();
+
+      if (!loggedInUser) {
+        throw new Error(
+          'Login succeeded, but the user profile could not be loaded. Please try again.'
+        );
+      }
+
+      navigate(getDestination(loggedInUser), { replace: true });
     } catch (error) {
-      const err = error.response?.data;
-      setGeneralError(err?.message || err?.detail || 'Invalid email or password.');
+      const responseData = error.response?.data;
+
+      setGeneralError(
+        responseData?.message ||
+          responseData?.detail ||
+          error.message ||
+          'Invalid email or password.'
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setGeneralError('');
+
+    try {
+      const token = credentialResponse?.credential;
+
+      if (!token) {
+        throw new Error('Google credential not received.');
+      }
+
+      await googleLogin(token);
+
+      const loggedInUser = await refreshUser();
+
+      if (!loggedInUser) {
+        throw new Error('Unable to load your user profile.');
+      }
+
+      navigate(getDestination(loggedInUser), { replace: true });
+    } catch (error) {
+      const responseData = error.response?.data;
+
+      setGeneralError(
+        responseData?.message ||
+          responseData?.detail ||
+          error.message ||
+          'Google login failed. Please try again.'
+      );
     }
   };
 
@@ -62,14 +152,22 @@ export default function Login() {
     <div className="min-h-screen flex" style={{ background: '#09090B' }}>
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12">
-        {/* Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0" style={{
-            background: 'radial-gradient(ellipse 80% 70% at 30% 30%, rgba(139,92,246,0.2) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 70% 70%, rgba(236,72,153,0.12) 0%, transparent 60%), #09090B'
-          }} />
-          {/* Grid overlay */}
-          <div className="absolute inset-0 opacity-[0.03]"
-            style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '60px 60px' }}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse 80% 70% at 30% 30%, rgba(139,92,246,0.2) 0%, transparent 70%), radial-gradient(ellipse 50% 50% at 70% 70%, rgba(236,72,153,0.12) 0%, transparent 60%), #09090B',
+            }}
+          />
+
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
+              backgroundSize: '60px 60px',
+            }}
           />
         </div>
 
@@ -78,6 +176,7 @@ export default function Login() {
           <div className="w-10 h-10 rounded-xl bg-gradient-violet flex items-center justify-center shadow-glow-violet">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
+
           <span className="font-display font-bold text-2xl text-white tracking-tight">
             Lil<span className="text-gradient-violet">Bunny</span>
           </span>
@@ -91,28 +190,38 @@ export default function Login() {
             transition={{ delay: 0.1, duration: 0.6 }}
           >
             <h1 className="font-display text-4xl font-bold text-white leading-tight mb-4">
-              Premium baby products,<br />
-              <span className="text-gradient-violet">delivered with care</span>
+              Premium baby products,
+              <br />
+              <span className="text-gradient-violet">
+                delivered with care
+              </span>
             </h1>
+
             <p className="text-zinc-400 text-base leading-relaxed mb-10">
-              Join thousands of parents who trust LilBunny for safe, beautiful baby essentials.
+              Join thousands of parents who trust LilBunny for safe, beautiful
+              baby essentials.
             </p>
 
             <div className="space-y-4">
-              {features.map((f, i) => (
+              {features.map((feature, index) => (
                 <motion.div
-                  key={i}
+                  key={feature.title}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
                   className="flex items-start gap-3"
                 >
                   <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-2 h-2 rounded-full bg-gradient-violet" />
                   </div>
+
                   <div>
-                    <p className="text-white text-sm font-medium">{f.title}</p>
-                    <p className="text-zinc-500 text-xs mt-0.5">{f.desc}</p>
+                    <p className="text-white text-sm font-medium">
+                      {feature.title}
+                    </p>
+                    <p className="text-zinc-500 text-xs mt-0.5">
+                      {feature.desc}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -125,7 +234,7 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Right Panel — Form */}
+      {/* Right Panel — Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -138,28 +247,40 @@ export default function Login() {
             <div className="w-9 h-9 rounded-xl bg-gradient-violet flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
+
             <span className="font-display font-bold text-xl text-white">
               Lil<span className="text-gradient-violet">Bunny</span>
             </span>
           </div>
 
           <div className="mb-8">
-            <h2 className="font-display text-3xl font-bold text-white">Welcome back</h2>
-            <p className="text-zinc-400 mt-2 text-sm">Sign in to your LilBunny account</p>
+            <h2 className="font-display text-3xl font-bold text-white">
+              Welcome back
+            </h2>
+            <p className="text-zinc-400 mt-2 text-sm">
+              Sign in to your LilBunny account
+            </p>
           </div>
 
-          <FormError message={generalError} onClose={() => setGeneralError('')} />
+          <FormError
+            message={generalError}
+            onClose={() => setGeneralError('')}
+          />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-5 mt-6"
+          >
             <InputField
               id="email"
               label="Email Address"
               type="email"
+              autoComplete="email"
               placeholder="parent@example.com"
               icon={Mail}
               required
               error={errors.email}
-              isValid={watch('email') && !errors.email}
+              isValid={Boolean(emailValue) && !errors.email}
               disabled={loading}
               {...register('email')}
             />
@@ -169,30 +290,44 @@ export default function Login() {
                 id="password"
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 placeholder="••••••••"
                 icon={Lock}
                 required
                 error={errors.password}
-                isValid={watch('password') && !errors.password}
+                isValid={Boolean(passwordValue) && !errors.password}
                 disabled={loading}
                 {...register('password')}
               />
+
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((previous) => !previous)}
                 className="absolute right-3 top-[38px] p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
 
             <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              >
                 Forgot password?
               </Link>
             </div>
 
-            <LoadingButton loading={loading} loadingText="Signing in..." disabled={!isValid || loading}>
+            <LoadingButton
+              loading={loading}
+              loadingText="Signing in..."
+              disabled={!isValid || loading}
+            >
               Sign In
             </LoadingButton>
           </form>
@@ -201,18 +336,23 @@ export default function Login() {
             <span>or continue with</span>
           </div>
 
-          {/* Social placeholders */}
-          <div className="grid grid-cols-2 gap-3">
-            {['Google', 'Apple'].map((p) => (
-              <button key={p} className="btn-ghost flex items-center justify-center gap-2 py-3 text-sm">
-                {p}
-              </button>
-            ))}
+          {/* Google Login */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                setGeneralError('Google login failed. Please try again.');
+              }}
+              useOneTap={false}
+            />
           </div>
 
           <p className="text-center text-sm text-zinc-500 mt-8">
             New to LilBunny?{' '}
-            <Link to="/register" className="text-violet-400 hover:text-violet-300 font-medium inline-flex items-center gap-1 transition-colors">
+            <Link
+              to="/register"
+              className="text-violet-400 hover:text-violet-300 font-medium inline-flex items-center gap-1 transition-colors"
+            >
               Create account
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
