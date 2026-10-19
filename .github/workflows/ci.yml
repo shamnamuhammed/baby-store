@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -100,3 +100,6 @@ jobs:
 
       - name: Run Django system checks
         run: python manage.py check
+
+      - name: Run order and payment tests
+        run: python manage.py test orders.tests payments.tests --verbosity 2
