@@ -10,14 +10,14 @@ class Payment(models.Model):
         RAZORPAY = "RAZORPAY", "Razorpay"
         STRIPE = "STRIPE", "Stripe"
 
+
     class PaymentStatus(models.TextChoices):
         PENDING = "PENDING", "Pending"
         SUCCESS = "SUCCESS", "Success"
         FAILED = "FAILED", "Failed"
-        REFUND_REQUESTED = (
-            "REFUND_REQUESTED",
-            "Refund Requested",
-        )
+        REFUND_REQUESTED = "REFUND_REQUESTED", "Refund Requested"
+        REFUND_PROCESSING = "REFUND_PROCESSING", "Refund Processing"
+        REFUND_FAILED = "REFUND_FAILED", "Refund Failed"
         REFUNDED = "REFUNDED", "Refunded"
 
     order = models.OneToOneField(
